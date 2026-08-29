@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIツール比較メモ</title>
+<style>
+  :root{
+    --paper:#EEF1EF;
+    --paper-raised:#FFFFFF;
+    --ink:#16211E;
+    --ink-muted:#5B6B65;
+    --line:#D6DCD8;
+    --accent:#1F6F5C;
+    --accent-dark:#154A3E;
+    --gold:#9C7A3C;
+    --danger:#A1362B;
+    --danger-bg:#F7E9E7;
+    --radius:10px;
+    --shadow:0 1px 2px rgba(22,33,30,0.06), 0 4px 12px rgba(22,33,30,0.05);
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    padding:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{
+    max-width:960px;
+    margin:0 auto;
+    padding:28px 20px 80px;
+  }
+
+  header.hero{
+    border-bottom:1px solid var(--line);
+    padding-bottom:20px;
+    margin-bottom:24px;
+  }
+
+  header.hero .eyebrow{
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:700;
+    margin:0 0 8px;
+  }
+
+  header.hero h1{
+    font-family: Georgia, "Hiragino Mincho ProN", serif;
+    font-size:clamp(24px,4vw,32px);
+    margin:0 0 8px;
+    letter-spacing:0.01em;
+  }
+
+  header.hero p{
+    margin:0;
+    color:var(--ink-muted);
+    font-size:14px;
+    line-height:1.6;
+  }
+
+  .toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    margin-bottom:18px;
+  }
+
+  .search-box{
+    position:relative;
+    flex:1 1 220px;
+  }
+
+  .search-box input{
+    width:100%;
+    padding:10px 12px 10px 34px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--paper-raised);
+    font-size:14px;
+    color:var(--ink);
+  }
+
+  .search-box::before{
+    content:"⌕";
+    position:absolute;
+    left:11px;
+    top:50%;
+    transform:translateY(-50%);
+    color:var(--ink-muted);
+    font-size:16px;
+    pointer-events:none;
+  }
+
+  .btn{
+    appearance:none;
+    border:1px solid var(--line);
+    background:var(--paper-raised);
+    color:var(--ink);
+    padding:9px 14px;
+    border-radius:var(--radius);
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+  }
+  .btn:hover{border-color:var(--accent);color:var(--accent-dark);}
+  .btn:active{transform:translateY(1px);}
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  .btn.primary{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+  .btn.primary:hover{background:var(--accent-dark);border-color:var(--accent-dark);color:#fff;}
+
+  .btn.ghost{
+    background:transparent;
+  }
+
+  .btn.danger-outline{
+    color:var(--danger);
+    border-color:#E0BDB7;
+  }
+  .btn.danger-outline:hover{border-color:var(--danger);background:var(--danger-bg);color:var(--danger);}
+
+  .btn[aria-pressed="true"]{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+
+  .sort-group{display:flex;gap:6px;}
+
+  .card{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+  }
+
+  /* ---- form card ---- */
+  .form-card{
+    padding:18px;
+    margin-bottom:20px;
+  }
+  .form-card h2{
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-muted);
+    margin:0 0 14px;
+    font-weight:700;
+  }
+  .form-grid{
+    display:grid;
+    grid-template-columns: 1.4fr 1fr 1.6fr auto;
+    gap:10px;
+    align-items:start;
+  }
+  @media (max-width:680px){
+    .form-grid{grid-template-columns:1fr;}
+  }
+  .field label{
+    display:block;
+    font-size:12px;
+    color:var(--ink-muted);
+    margin-bottom:4px;
+  }
+  .field input{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    font-size:14px;
+    color:var(--ink);
+    background:var(--paper);
+  }
+  .field input:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+  .field .err{
+    color:var(--danger);
+    font-size:12px;
+    margin-top:4px;
+    min-height:16px;
+  }
+  .form-actions{
+    display:flex;
+    align-items:flex-end;
+    height:100%;
+  }
+
+  /* 数値入力の増減ボタン（スピナー）を非表示にする */
+  input[type="number"]{
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button{
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* ---- list ---- */
+  .list-card{overflow:hidden;}
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+  }
+  thead th{
+    text-align:left;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--ink-muted);
+    padding:12px 14px;
+    border-bottom:1px solid var(--line);
+    background:#F5F7F5;
+  }
+  tbody td{
+    padding:14px;
+    border-bottom:1px solid var(--line);
+    vertical-align:middle;
+    font-size:14px;
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#FAFBFA;}
+
+  .name-cell{font-weight:600;}
+  .memo-cell{color:var(--ink-muted);}
+
+  .price-cell{white-space:nowrap;}
+  .price-num{
+    font-variant-numeric: tabular-nums;
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    font-weight:600;
+  }
+  .price-bar-track{
+    display:block;
+    height:4px;
+    border-radius:2px;
+    background:#E4E9E5;
+    margin-top:6px;
+    width:100px;
+    max-width:100%;
+    overflow:hidden;
+  }
+  .price-bar-fill{
+    display:block;
+    height:100%;
+    background:var(--gold);
+    border-radius:2px;
+  }
+
+  .row-actions{
+    display:flex;
+    gap:6px;
+    justify-content:flex-end;
+  }
+  .icon-btn{
+    border:1px solid var(--line);
+    background:var(--paper-raised);
+    border-radius:7px;
+    padding:6px 9px;
+    font-size:12px;
+    cursor:pointer;
+    color:var(--ink-muted);
+  }
+  .icon-btn:hover{color:var(--accent-dark);border-color:var(--accent);}
+  .icon-btn.del:hover{color:var(--danger);border-color:var(--danger);}
+  .icon-btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+
+  .empty-state{
+    padding:48px 20px;
+    text-align:center;
+    color:var(--ink-muted);
+  }
+  .empty-state strong{display:block;color:var(--ink);margin-bottom:6px;font-size:15px;}
+
+  .footer-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:16px;
+    font-size:12px;
+    color:var(--ink-muted);
+  }
+
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:24px;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--ink);
+    color:#fff;
+    padding:10px 18px;
+    border-radius:8px;
+    font-size:13px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.2s ease, transform 0.2s ease;
+    z-index:50;
+    max-width:90vw;
+    text-align:center;
+  }
+  .toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+
+  /* edit mode inputs inside table row */
+  .edit-input{
+    width:100%;
+    padding:6px 8px;
+    border:1px solid var(--accent);
+    border-radius:6px;
+    font-size:13px;
+    background:#fff;
+  }
+
+  /* mobile: card layout instead of table */
+  @media (max-width:640px){
+    thead{display:none;}
+    table, tbody, tr, td{display:block;width:100%;}
+    tbody tr{
+      border-bottom:1px solid var(--line);
+      padding:14px 4px;
+    }
+    tbody td{
+      border-bottom:none;
+      padding:4px 10px;
+    }
+    tbody td[data-label]::before{
+      content:attr(data-label);
+      display:block;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:0.06em;
+      color:var(--ink-muted);
+      margin-bottom:2px;
+    }
+    .row-actions{justify-content:flex-start;margin-top:6px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">Comparison Ledger</p>
+    <h1>AIツール比較メモ</h1>
+    <p>検討中のAIツールを、月額料金とメモで並べて見比べるための台帳です。データはこの端末のブラウザ内（localStorage）にのみ保存されます。</p>
+  </header>
+
+  <section class="form-card card" aria-labelledby="form-heading">
+    <h2 id="form-heading">ツールを追加</h2>
+    <div class="form-grid">
+      <div class="field">
+        <label for="input-name">名前</label>
+        <input type="text" id="input-name" placeholder="例: Delta" maxlength="60">
+        <div class="err" id="err-name"></div>
+      </div>
+      <div class="field">
+        <label for="input-monthly">月額料金（円）</label>
+        <input type="number" id="input-monthly" placeholder="例: 2000" min="1" step="1">
+        <div class="err" id="err-monthly"></div>
+      </div>
+      <div class="field">
+        <label for="input-memo">メモ</label>
+        <input type="text" id="input-memo" placeholder="例: 文章生成、要約に強い" maxlength="120">
+        <div class="err" id="err-memo"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn primary" id="btn-add" type="button">追加する</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <input type="text" id="search" placeholder="名前・メモで検索" aria-label="名前・メモで検索">
+    </div>
+    <div class="sort-group" role="group" aria-label="並べ替え">
+      <button class="btn" id="sort-asc" type="button" aria-pressed="false">料金 昇順 ▲</button>
+      <button class="btn" id="sort-desc" type="button" aria-pressed="false">料金 降順 ▼</button>
+    </div>
+    <button class="btn ghost" id="btn-csv" type="button">CSVダウンロード</button>
+    <button class="btn danger-outline" id="btn-reset" type="button">初期状態にリセット</button>
+  </div>
+
+  <section class="list-card card">
+    <table id="table">
+      <thead>
+        <tr>
+          <th style="width:24%">名前</th>
+          <th style="width:20%">月額料金</th>
+          <th>メモ</th>
+          <th style="width:110px"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty-state" id="empty-state" hidden>
+      <strong>ツールが見つかりません</strong>
+      検索条件を変えるか、上のフォームから新しいツールを追加してください。
+    </div>
+  </section>
+
+  <div class="footer-bar">
+    <span id="count-label"></span>
+    <span>入力はそのままテキストとして表示され、HTMLとしては実行されません。</span>
+  </div>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "ai-tool-memo-v1";
+  var INITIAL_DATA = [
+    {name:"Alpha", monthly:3000, memo:"文章"},
+    {name:"Beta",  monthly:0,    memo:"調査"},
+    {name:"Gamma", monthly:5000, memo:"画像"}
+  ];
+
+  var state = {
+    items: [],       // array of {id, name, monthly, memo}
+    query: "",
+    sort: null,       // null | "asc" | "desc"
+    editingId: null
+  };
+
+  var tbody = document.getElementById("tbody");
+  var emptyState = document.getElementById("empty-state");
+  var countLabel = document.getElementById("count-label");
+  var searchInput = document.getElementById("search");
+  var sortAscBtn = document.getElementById("sort-asc");
+  var sortDescBtn = document.getElementById("sort-desc");
+  var toastEl = document.getElementById("toast");
+
+  var inputName = document.getElementById("input-name");
+  var inputMonthly = document.getElementById("input-monthly");
+  var inputMemo = document.getElementById("input-memo");
+  var errName = document.getElementById("err-name");
+  var errMonthly = document.getElementById("err-monthly");
+  var errMemo = document.getElementById("err-memo");
+
+  var nextId = 1;
+
+  function genId(){
+    return "t" + (nextId++) + "-" + Date.now().toString(36);
+  }
+
+  function cloneInitial(){
+    return INITIAL_DATA.map(function(d){
+      return {id: genId(), name: d.name, monthly: d.monthly, memo: d.memo};
+    });
+  }
+
+  function load(){
+    var raw = null;
+    try{ raw = localStorage.getItem(STORAGE_KEY); }catch(e){ raw = null; }
+    if(!raw){
+      state.items = cloneInitial();
+      save();
+      return;
+    }
+    try{
+      var parsed = JSON.parse(raw);
+      if(!Array.isArray(parsed)) throw new Error("not array");
+      state.items = parsed.map(function(d){
+        return {
+          id: d.id || genId(),
+          name: String(d.name || ""),
+          monthly: Number(d.monthly) || 0,
+          memo: String(d.memo || "")
+        };
+      });
+    }catch(e){
+      state.items = cloneInitial();
+      save();
+    }
+  }
+
+  function save(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items));
+    }catch(e){
+      showToast("保存に失敗しました（ブラウザのストレージ容量またはプライベートモードをご確認ください）");
+    }
+  }
+
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(function(){
+      toastEl.classList.remove("show");
+    }, 2400);
+  }
+
+  // ---------- validation ----------
+  function normalizeName(s){
+    return s.trim().toLowerCase();
+  }
+
+  function validateEntry(name, monthlyRaw, memo, excludeId){
+    var errs = { name:"", monthly:"", memo:"" };
+    var ok = true;
+
+    var trimmedName = String(name).trim();
+    var trimmedMemo = String(memo).trim();
+
+    if(trimmedName === ""){
+      errs.name = "名前を入力してください。";
+      ok = false;
+    } else if(trimmedName.length > 60){
+      errs.name = "名前は60文字以内で入力してください。";
+      ok = false;
+    } else {
+      var dup = state.items.some(function(it){
+        return it.id !== excludeId && normalizeName(it.name) === normalizeName(trimmedName);
+      });
+      if(dup){
+        errs.name = "同じ名前のツールが既に登録されています。";
+        ok = false;
+      }
+    }
+
+    var monthlyNum = Number(monthlyRaw);
+    if(monthlyRaw === "" || monthlyRaw === null || monthlyRaw === undefined || isNaN(monthlyNum)){
+      errs.monthly = "月額料金を入力してください。";
+      ok = false;
+    } else if(monthlyNum <= 0){
+      errs.monthly = "月額料金は1円以上で入力してください（0円は登録できません）。";
+      ok = false;
+    } else if(monthlyNum > 10000000){
+      errs.monthly = "金額が大きすぎます。";
+      ok = false;
+    }
+
+    if(trimmedMemo === ""){
+      errs.memo = "メモを入力してください。";
+      ok = false;
+    } else if(trimmedMemo.length > 120){
+      errs.memo = "メモは120文字以内で入力してください。";
+      ok = false;
+    }
+
+    return { ok: ok, errs: errs, name: trimmedName, monthly: monthlyNum, memo: trimmedMemo };
+  }
+
+  function clearFormErrors(){
+    errName.textContent = "";
+    errMonthly.textContent = "";
+    errMemo.textContent = "";
+  }
+
+  // ---------- add ----------
+  document.getElementById("btn-add").addEventListener("click", function(){
+    clearFormErrors();
+    var result = validateEntry(inputName.value, inputMonthly.value, inputMemo.value, null);
+    if(!result.ok){
+      errName.textContent = result.errs.name;
+      errMonthly.textContent = result.errs.monthly;
+      errMemo.textContent = result.errs.memo;
+      return;
+    }
+    state.items.push({
+      id: genId(),
+      name: result.name,
+      monthly: result.monthly,
+      memo: result.memo
+    });
+    save();
+    inputName.value = "";
+    inputMonthly.value = "";
+    inputMemo.value = "";
+    inputName.focus();
+    showToast(result.name + " を追加しました。");
+    render();
+  });
+
+  [inputName, inputMonthly, inputMemo].forEach(function(el){
+    el.addEventListener("keydown", function(ev){
+      if(ev.key === "Enter"){
+        document.getElementById("btn-add").click();
+      }
+    });
+  });
+
+  // ---------- search ----------
+  searchInput.addEventListener("input", function(){
+    state.query = searchInput.value;
+    render();
+  });
+
+  // ---------- sort ----------
+  sortAscBtn.addEventListener("click", function(){
+    state.sort = (state.sort === "asc") ? null : "asc";
+    render();
+  });
+  sortDescBtn.addEventListener("click", function(){
+    state.sort = (state.sort === "desc") ? null : "desc";
+    render();
+  });
+
+  // ---------- reset ----------
+  document.getElementById("btn-reset").addEventListener("click", function(){
+    var sure = window.confirm("保存されているデータをすべて削除し、初期状態（Alpha / Beta / Gamma）に戻します。よろしいですか？");
+    if(!sure) return;
+    state.items = cloneInitial();
+    state.query = "";
+    state.sort = null;
+    state.editingId = null;
+    searchInput.value = "";
+    save();
+    showToast("初期状態にリセットしました。");
+    render();
+  });
+
+  // ---------- csv ----------
+  function csvEscape(value){
+    var s = String(value);
+    if(/[",\n\r]/.test(s)){
+      s = '"' + s.replace(/"/g, '""') + '"';
+    } else {
+      s = '"' + s + '"';
+    }
+    return s;
+  }
+
+  document.getElementById("btn-csv").addEventListener("click", function(){
+    var rows = [["名前", "月額料金", "メモ"]];
+    getVisibleItems().forEach(function(it){
+      rows.push([it.name, it.monthly, it.memo]);
+    });
+    var csvBody = rows.map(function(r){
+      return r.map(csvEscape).join(",");
+    }).join("\r\n");
+    // BOM付きUTF-8にして、Excelで開いた際に日本語が文字化けしないようにする
+    var blob = new Blob(["\uFEFF" + csvBody], {type: "text/csv;charset=utf-8;"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    var stamp = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = "ai-tool-memo_" + stamp + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    showToast("CSVをダウンロードしました。");
+  });
+
+  // ---------- filtering / sorting ----------
+  function getVisibleItems(){
+    var q = state.query.trim().toLowerCase();
+    var list = state.items.filter(function(it){
+      if(q === "") return true;
+      return it.name.toLowerCase().indexOf(q) !== -1 ||
+             it.memo.toLowerCase().indexOf(q) !== -1;
+    });
+    if(state.sort === "asc"){
+      list = list.slice().sort(function(a,b){ return a.monthly - b.monthly; });
+    } else if(state.sort === "desc"){
+      list = list.slice().sort(function(a,b){ return b.monthly - a.monthly; });
+    }
+    return list;
+  }
+
+  // ---------- rendering ----------
+  function render(){
+    sortAscBtn.setAttribute("aria-pressed", state.sort === "asc" ? "true" : "false");
+    sortDescBtn.setAttribute("aria-pressed", state.sort === "desc" ? "true" : "false");
+
+    var visible = getVisibleItems();
+    var maxPrice = state.items.reduce(function(m,it){ return Math.max(m, it.monthly); }, 0) || 1;
+
+    tbody.textContent = "";
+
+    if(visible.length === 0){
+      emptyState.hidden = false;
+    } else {
+      emptyState.hidden = true;
+    }
+
+    visible.forEach(function(it){
+      if(state.editingId === it.id){
+        tbody.appendChild(buildEditRow(it));
+      } else {
+        tbody.appendChild(buildRow(it, maxPrice));
+      }
+    });
+
+    var total = state.items.length;
+    var shown = visible.length;
+    countLabel.textContent = (state.query.trim() !== "")
+      ? (shown + " / " + total + " 件を表示中")
+      : (total + " 件のツールを登録中");
+  }
+
+  function buildRow(it, maxPrice){
+    var tr = document.createElement("tr");
+
+    var tdName = document.createElement("td");
+    tdName.className = "name-cell";
+    tdName.setAttribute("data-label", "名前");
+    tdName.textContent = it.name; // textContentで安全に表示（HTMLとして実行されない）
+    tr.appendChild(tdName);
+
+    var tdPrice = document.createElement("td");
+    tdPrice.className = "price-cell";
+    tdPrice.setAttribute("data-label", "月額料金");
+    var priceSpan = document.createElement("span");
+    priceSpan.className = "price-num";
+    priceSpan.textContent = "¥" + it.monthly.toLocaleString("ja-JP");
+    tdPrice.appendChild(priceSpan);
+    var track = document.createElement("span");
+    track.className = "price-bar-track";
+    var fill = document.createElement("span");
+    fill.className = "price-bar-fill";
+    var pct = maxPrice > 0 ? Math.max(4, Math.round((it.monthly / maxPrice) * 100)) : 0;
+    fill.style.width = pct + "%";
+    track.appendChild(fill);
+    tdPrice.appendChild(track);
+    tr.appendChild(tdPrice);
+
+    var tdMemo = document.createElement("td");
+    tdMemo.className = "memo-cell";
+    tdMemo.setAttribute("data-label", "メモ");
+    tdMemo.textContent = it.memo; // textContentで安全に表示
+    tr.appendChild(tdMemo);
+
+    var tdActions = document.createElement("td");
+    tdActions.setAttribute("data-label", "");
+    var actions = document.createElement("div");
+    actions.className = "row-actions";
+
+    var editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "icon-btn";
+    editBtn.textContent = "編集";
+    editBtn.addEventListener("click", function(){
+      state.editingId = it.id;
+      render();
+    });
+
+    var delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "icon-btn del";
+    delBtn.textContent = "削除";
+    delBtn.addEventListener("click", function(){
+      var sure = window.confirm("「" + it.name + "」を削除します。よろしいですか？");
+      if(!sure) return;
+      state.items = state.items.filter(function(x){ return x.id !== it.id; });
+      save();
+      showToast(it.name + " を削除しました。");
+      render();
+    });
+
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+    tdActions.appendChild(actions);
+    tr.appendChild(tdActions);
+
+    return tr;
+  }
+
+  function buildEditRow(it){
+    var tr = document.createElement("tr");
+
+    var tdName = document.createElement("td");
+    tdName.setAttribute("data-label", "名前");
+    var nameInput = document.createElement("input");
+    nameInput.className = "edit-input";
+    nameInput.value = it.name;
+    nameInput.maxLength = 60;
+    tdName.appendChild(nameInput);
+    tr.appendChild(tdName);
+
+    var tdPrice = document.createElement("td");
+    tdPrice.setAttribute("data-label", "月額料金");
+    var priceInput = document.createElement("input");
+    priceInput.type = "number";
+    priceInput.className = "edit-input";
+    priceInput.value = it.monthly;
+    priceInput.min = "1";
+    tdPrice.appendChild(priceInput);
+    tr.appendChild(tdPrice);
+
+    var tdMemo = document.createElement("td");
+    tdMemo.setAttribute("data-label", "メモ");
+    var memoInput = document.createElement("input");
+    memoInput.className = "edit-input";
+    memoInput.value = it.memo;
+    memoInput.maxLength = 120;
+    tdMemo.appendChild(memoInput);
+    tr.appendChild(tdMemo);
+
+    var tdActions = document.createElement("td");
+    var actions = document.createElement("div");
+    actions.className = "row-actions";
+
+    var errBox = document.createElement("div");
+    errBox.className = "err";
+    errBox.style.width = "100%";
+
+    var saveBtn = document.createElement("button");
+    saveBtn.type = "button";
+    saveBtn.className = "icon-btn";
+    saveBtn.textContent = "保存";
+    saveBtn.addEventListener("click", function(){
+      var result = validateEntry(nameInput.value, priceInput.value, memoInput.value, it.id);
+      if(!result.ok){
+        var msg = result.errs.name || result.errs.monthly || result.errs.memo;
+        errBox.textContent = msg;
+        return;
+      }
+      it.name = result.name;
+      it.monthly = result.monthly;
+      it.memo = result.memo;
+      state.editingId = null;
+      save();
+      showToast("更新しました。");
+      render();
+    });
+
+    var cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.className = "icon-btn";
+    cancelBtn.textContent = "取消";
+    cancelBtn.addEventListener("click", function(){
+      state.editingId = null;
+      render();
+    });
+
+    actions.appendChild(saveBtn);
+    actions.appendChild(cancelBtn);
+    tdActions.appendChild(actions);
+    tdActions.appendChild(errBox);
+    tr.appendChild(tdActions);
+
+    return tr;
+  }
+
+  // ---------- init ----------
+  load();
+  render();
+})();
+</script>
+</body>
+</html>
